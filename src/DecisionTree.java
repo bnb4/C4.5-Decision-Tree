@@ -1,7 +1,5 @@
-import java.io.File;
-import java.io.IOException;
 import java.util.*;
-
+/*
 class Node {
 	
 	private String description = "";
@@ -74,7 +72,7 @@ class LeafNode<T> extends Node {
 	public T getData() {
 		return finalClass;
 	}
-}
+}*/
 
 // ====================以上為樹狀結構=================
 
@@ -83,8 +81,8 @@ class LeafNode<T> extends Node {
  *
  */
 class Element {
-	private Map<String, String> attData = new HashMap<>(); // <Attribute名稱: Attribute值>
-	private String output = null;
+	private Map<String, String> attData = new HashMap<>(); 	// <Attribute名稱: Attribute值>
+	private String output = null;							// CLASS
 	
 	public Element(String [] attributes, String [] attData, String result) {
 		for (int i = 0; i < attributes.length; i++) {
@@ -93,10 +91,12 @@ class Element {
 		this.output = result;
 	}
 	
+	// 取得某標籤資料 (input)
 	public String getAttributeData(String attribute) {
 		return this.attData.get(attribute);
 	}
 	
+	// 取得輸出 (output)
 	public String getOutput() {
 		return this.output;
 	}
@@ -114,7 +114,6 @@ class Element {
 		}
 		return isSame && (this.getOutput().equals(oElement.getOutput()));
 	}
-	
 }
 
 /**
@@ -125,12 +124,19 @@ class Bag {
 	// 此分堆剩餘未用到的 attributes
 	private String [] attributes;	
 	
+	// 該Bag分支的名稱
+	private String name = null;
+	
 	// 此分堆包含的資料
 	private List<Element> data = new ArrayList<>();
 	
-	public Bag(String [] attributes) {
+	public Bag(String branchName, String [] attributes) {
+		this.name = branchName;
 		this.attributes = attributes;
 	}
+	
+	// 取得該Bag名稱
+	public String getName() {return name;}
 	
 	// 新增資料到該Bag
 	public Bag addElement(Element element) {
@@ -143,16 +149,59 @@ class Bag {
 		return attributes;
 	}
 	
-	//Math.log(x) / Math.log(2)
+	// 以熵最大的Attribute分割成多個 Bag
+	public Bag [] splitBagByMinEntropy() {
+		
+		String maxAttribute = getMaxEntropyAttribute();
+		String [] newAttributes = new String [this.attributes.length - 1];
+		
+		// 取得分割後的Bag剩餘的Attribute
+		for (int i = 0, counter = 0; i < this.attributes.length; i++) 
+			if (!this.attributes[i].equals(maxAttribute)) 
+				newAttributes[counter++] = this.attributes[i];
+		
+		// 分類Bags
+		Map<String, Bag> rawBags = new HashMap<>();
+		for (Element e : data) {
+			String maxAttributeData = e.getAttributeData(maxAttribute);
+			
+			// 若還沒有該分割種類的包，新增該包
+			if (!rawBags.containsKey(maxAttributeData)) 
+				rawBags.put(maxAttributeData, new Bag(maxAttributeData, newAttributes));
+			
+			rawBags.get(maxAttributeData).addElement(e);
+		}
+		
+		return rawBags.values().toArray(new Bag [rawBags.size()]);
+	}
 	
+	// 取得熵最大的attribute
+	public String getMaxEntropyAttribute() {
+		String min = null;
+		double value = 0.0;
+		
+		for (String attribute : getAttrubutes()) {
+			double nowValue = getEntropy(attribute);
+			if (nowValue > value) {
+				min = attribute;
+				value = nowValue;
+			}
+		}
+		
+		return min;
+	}
+	
+	// 取得某 attribute 的熵
 	public double getEntropy(String attribute) {
 		return getOutputEntropy() - getAttributeEntropy(attribute);
 	}
 	
+	// 取得熵計算中output部分
 	private double getOutputEntropy() {
 		HashMap<String, Integer> outputs = new HashMap<>();
 		double entropy = 0.0;
 		
+		// 把資料讀入Map中
 		for (Element e : data) {
 			if (!outputs.containsKey(e.getOutput())) {
 				outputs.put(e.getOutput(), 1);
@@ -161,22 +210,23 @@ class Bag {
 			}
 		}
 		
+		// 計算熵
 		for (String att : outputs.keySet()) {
-             
             double part = outputs.get(att) * 1.0 / data.size();
             entropy -= ( (part) * (Math.log(part) / Math.log(2)));
         }
 		return entropy;
 	}
 	
+	// 取得熵計算中attribute部分
 	private double getAttributeEntropy(String attribute) {
 		HashMap<String, HashMap<String, Integer>> outputs = new HashMap<>();
 		HashMap<String, Integer> attributes = new HashMap<>();
-
 		double entropy = 0.0;
 		
+		// 把資料讀入Map中
 		for (Element e : data) {
-
+			
 			String attData = e.getAttributeData(attribute);
 			
 			if (!attributes.containsKey(attData)) {
@@ -191,6 +241,7 @@ class Bag {
 			else attOutput.put(e.getOutput(), attOutput.get(e.getOutput()) + 1);
 		}
 		
+		// 計算熵
 		for (String att : attributes.keySet()) {
 			double tmp = 0.0;
             HashMap<String, Integer> output = outputs.get(att);
@@ -205,72 +256,18 @@ class Bag {
 		return entropy;
 	}
 	
-}
-
-/**
- * 將檔案 parse 並取出
- */
-class FileParser {
-	
-	private String [] attributes;
-	private List<Element> data = new ArrayList<>();
-	
-	public FileParser(String fileName) {
-		
-		try (Scanner scanner = new Scanner(new File(fileName))) {
-			if (scanner.hasNext()) loadAttribute(scanner.nextLine());
-			while (scanner.hasNext()){
-				addData(scanner.nextLine());
-			}
-		} catch (IOException e) { e.printStackTrace(); }
-	}
-	
-	// 取得檔案中內含的 Attribute (內部)
-	private void loadAttribute(String attStr) {
-		// 文件第一行是attribute名稱
-		String [] raw = attStr.trim().split(" ");
-		attributes = Arrays.copyOfRange(raw, 0, raw.length - 1);
-	}
-	
-	// 取得所有 Attributes (外部 getter)
-	public String [] getAttributes() {
-		return attributes;
-	}
-	
-	// 讀入檔案資料
-	private void addData(String dataStr) {
-		if (dataStr == null || dataStr.equals("")) return;
-
-		String [] splData = dataStr.split(" ");
-		
-		if (splData.length != getAttributesCount() + 1) return; // 資料不全
-		
-		data.add(new Element(getAttributes()
-							, Arrays.copyOfRange(splData, 0, getAttributesCount())
-							, splData[getAttributesCount()] )
-				);
-	}
-	
-	// 取得 Attributes 數量
-	public int getAttributesCount() {
-		if (attributes == null) return 0; 
-		return attributes.length;
-	}
-	
-	// 取得所有數據
-	public List<Element> getDatas() {
-		return new ArrayList<>(data);
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("Bag: ");sb.append(getName()); sb.append("\r\n");
+		for (String attribute : getAttrubutes()) {
+			sb.append(attribute);sb.append(": ");sb.append(getEntropy(attribute));
+			sb.append(" (");sb.append(getOutputEntropy());sb.append(" - ");sb.append(getAttributeEntropy(attribute));sb.append(")");
+			sb.append("\r\n");
+		}
+		return sb.toString();
 	}
 }
 
 public class DecisionTree {
-	public static void main(String [] args) {
-		FileParser filePaser = new FileParser("TEST.txt");
-		List<Element> o = filePaser.getDatas();
-		Bag bag = new Bag(filePaser.getAttributes());
-		for (Element e : o) bag.addElement(e);
-		
-		System.out.println(bag.getEntropy("Attribute3"));
-		System.out.println("S");
-	}
+	
 }
