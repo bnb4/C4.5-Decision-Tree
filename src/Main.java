@@ -5,16 +5,18 @@ public class Main {
 	public static void main(String[] args) {
 		
 		// 取得測試資料
-		FileParser filePaser = new FileParser("TEST.txt");
+		FileParser filePaser = new FileParser("Data.txt");
 		List<Element> o = filePaser.getDatas();
 		
 		// 新增一個Bag
 		Bag bag = new Bag("root", filePaser.getAttributes());
 		// 把資料讀入Bag
-		for (Element e : o) bag.addElement(e);
+		for (Element e : o) {
+			bag.addElement(e);
+		}
 		
 		// 分割
-		Bag [] bags = bag.splitBagByMinEntropy();
+		Bag[] bags = bag.splitBagByMinEntropy();
 		
 		// 印出測試
 		System.out.println(bag);

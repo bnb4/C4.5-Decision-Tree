@@ -81,10 +81,12 @@ class LeafNode<T> extends Node {
  *
  */
 class Element {
-	private Map<String, String> attData = new HashMap<>(); 	// <Attribute名稱: Attribute值>
-	private String output = null;							// CLASS
+	// <Attribute名稱: Attribute值>
+	private Map<String, String> attData = new HashMap<String, String>(); 	
+	// 結果
+	private String output = null;
 	
-	public Element(String [] attributes, String [] attData, String result) {
+	public Element(String[] attributes, String[] attData, String result) {
 		for (int i = 0; i < attributes.length; i++) {
 			this.attData.put(attributes[i], attData[i]);
 		}
@@ -103,10 +105,12 @@ class Element {
 
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof Element)) return false;
+		if (!(other instanceof Element)) {
+			return false;
+		}
 		Element oElement = (Element) other;
 		boolean isSame = true;
-		for(String attribute : attData.keySet()) {
+		for (String attribute : attData.keySet()) {
 			if (!this.getAttributeData(attribute).equals(oElement.getAttributeData(attribute))) {
 				isSame = false;
 				break;
@@ -122,21 +126,23 @@ class Element {
 class Bag {
 	
 	// 此分堆剩餘未用到的 attributes
-	private String [] attributes;	
+	private String[] attributes;	
 	
 	// 該Bag分支的名稱
 	private String name = null;
 	
 	// 此分堆包含的資料
-	private List<Element> data = new ArrayList<>();
+	private List<Element> data = new ArrayList<Element>();
 	
-	public Bag(String branchName, String [] attributes) {
+	public Bag(String branchName, String[] attributes) {
 		this.name = branchName;
 		this.attributes = attributes;
 	}
 	
 	// 取得該Bag名稱
-	public String getName() {return name;}
+	public String getName() {
+		return name;
+	}
 	
 	// 新增資料到該Bag
 	public Bag addElement(Element element) {
@@ -145,30 +151,32 @@ class Bag {
 	}
 	
 	// 取得該Bag中的 Attributes
-	public String [] getAttrubutes() {
+	public String[] getAttrubutes() {
 		return attributes;
 	}
 	
 	// 以熵最大的Attribute分割成多個 Bag
-	public Bag [] splitBagByMinEntropy() {
-		
+	public Bag[] splitBagByMinEntropy() {
 		String maxAttribute = getMaxEntropyAttribute();
-		String [] newAttributes = new String [this.attributes.length - 1];
+		String[] newAttributes = new String[this.attributes.length - 1];
 		
 		// 取得分割後的Bag剩餘的Attribute
-		for (int i = 0, counter = 0; i < this.attributes.length; i++) 
-			if (!this.attributes[i].equals(maxAttribute)) 
+		for (int i = 0, counter = 0; i < this.attributes.length; i++) {
+			if (!this.attributes[i].equals(maxAttribute)) {
 				newAttributes[counter++] = this.attributes[i];
-		
+			}
+		}
+				
 		// 分類Bags
-		Map<String, Bag> rawBags = new HashMap<>();
+		Map<String, Bag> rawBags = new HashMap<String, Bag>();
 		for (Element e : data) {
 			String maxAttributeData = e.getAttributeData(maxAttribute);
 			
 			// 若還沒有該分割種類的包，新增該包
-			if (!rawBags.containsKey(maxAttributeData)) 
+			if (!rawBags.containsKey(maxAttributeData)) {
 				rawBags.put(maxAttributeData, new Bag(maxAttributeData, newAttributes));
-			
+			}
+				
 			rawBags.get(maxAttributeData).addElement(e);
 		}
 		
@@ -198,7 +206,7 @@ class Bag {
 	
 	// 取得熵計算中output部分
 	private double getOutputEntropy() {
-		HashMap<String, Integer> outputs = new HashMap<>();
+		HashMap<String, Integer> outputs = new HashMap<String, Integer>();
 		double entropy = 0.0;
 		
 		// 把資料讀入Map中
@@ -213,15 +221,15 @@ class Bag {
 		// 計算熵
 		for (String att : outputs.keySet()) {
             double part = outputs.get(att) * 1.0 / data.size();
-            entropy -= ( (part) * (Math.log(part) / Math.log(2)));
+            entropy -= part * Math.log(part) / Math.log(2);
         }
 		return entropy;
 	}
 	
 	// 取得熵計算中attribute部分
 	private double getAttributeEntropy(String attribute) {
-		HashMap<String, HashMap<String, Integer>> outputs = new HashMap<>();
-		HashMap<String, Integer> attributes = new HashMap<>();
+		HashMap<String, HashMap<String, Integer>> outputs = new HashMap<String, HashMap<String, Integer>>();
+		HashMap<String, Integer> attributes = new HashMap<String, Integer>();
 		double entropy = 0.0;
 		
 		// 把資料讀入Map中
@@ -237,8 +245,11 @@ class Bag {
 			}
 			
 			HashMap<String, Integer> attOutput = outputs.get(attData);
-			if (!attOutput.containsKey(e.getOutput())) attOutput.put(e.getOutput(), 1);
-			else attOutput.put(e.getOutput(), attOutput.get(e.getOutput()) + 1);
+			if (!attOutput.containsKey(e.getOutput())) {
+				attOutput.put(e.getOutput(), 1);
+			} else {
+				attOutput.put(e.getOutput(), attOutput.get(e.getOutput()) + 1);
+			}
 		}
 		
 		// 計算熵
@@ -246,8 +257,8 @@ class Bag {
 			double tmp = 0.0;
             HashMap<String, Integer> output = outputs.get(att);
             for (String eachOutput: output.keySet()) {
-            	double part = output.get(eachOutput) * 1.0 / attributes.get(att);
-            	tmp -= ((part) * (Math.log(part) / Math.log(2)));
+	            	double part = output.get(eachOutput) * 1.0 / attributes.get(att);
+	            	tmp -= part * Math.log(part) / Math.log(2);
             }
 
             double part = attributes.get(att) * 1.0 / data.size();
