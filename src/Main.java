@@ -6,12 +6,16 @@ public class Main {
 		
 		// 取得測試資料
 		FileParser filePaser = new FileParser("Data.txt");
-		List<Element> o = filePaser.getDatas();
+		List<Element> elementList = filePaser.getElementList();
 		
+		
+		/*
+		 * 測試部分
+		 */
 		// 新增一個Bag
-		Bag bag = new Bag("root", filePaser.getAttributes());
+		Bag bag = new Bag("root", filePaser.getAttributes(), filePaser.getNumberOfOutput());
 		// 把資料讀入Bag
-		for (Element e : o) {
+		for (Element e : elementList) {
 			bag.addElement(e);
 		}
 		

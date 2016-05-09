@@ -2,8 +2,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * 將檔案 parse 並取出資料
@@ -11,13 +13,21 @@ import java.util.Scanner;
 public class FileParser {
 	
 	private String[] attributes;
-	private List<Element> data = new ArrayList<Element>();
+	private List<Element> elementList = new ArrayList<Element>();
+	private Set<String> outputsSet = new HashSet<String>();
 	
+	/*
+	 * 建構子
+	 * 讀取檔案並轉為需要格式
+	 * @參數 fileName: 檔案路徑
+	 */
 	public FileParser(String fileName) {
 		try (Scanner scanner = new Scanner(new File(fileName))) {
+			// 讀取第一行(屬性名稱)
 			if (scanner.hasNext()) {
 				loadAttribute(scanner.nextLine());
 			}
+			// 讀取資料行
 			while (scanner.hasNext()) {
 				addData(scanner.nextLine());
 			}
@@ -26,46 +36,74 @@ public class FileParser {
 		}
 	}
 	
-	// 取得檔案中內含的 Attribute (內部)
+	/*
+	 * 儲存屬性名稱
+	 * 不包含"Output"欄名稱
+	 * @參數 attStr 屬性行字串
+	 */
 	private void loadAttribute(String attStr) {
-		// 文件第一行是attribute名稱
 		String[] raw = attStr.trim().split("\t");
 		attributes = Arrays.copyOfRange(raw, 0, raw.length - 1);
 	}
 	
-	// 取得所有 Attributes (外部 getter)
-	public String[] getAttributes() {
-		return attributes;
-	}
-	
-	// 讀入檔案資料
+	/*
+	 * 添加資料行至elementList
+	 * @參數 dataStr 資料行字串
+	 */
 	private void addData(String dataStr) {
+		// 處理空白行
 		if (dataStr == null || dataStr.equals("")) {
 			return;
 		}
 
-		String[] splData = dataStr.split("\t");
+		String[] dataArray = dataStr.split("\t");
 		
-		if (splData.length != getAttributesCount() + 1) {
-			return; // 資料不全
+		// 資料欄位數量不正確
+		if (dataArray.length != getAttributesLength() + 1) {
+			return;
 		}
 		
-		data.add(new Element(getAttributes()
-							, Arrays.copyOfRange(splData, 0, getAttributesCount())
-							, splData[getAttributesCount()])
-				);
+		elementList.add(new Element(getAttributes(),
+							Arrays.copyOfRange(dataArray, 0, getAttributesLength()),
+							dataArray[getAttributesLength()])
+					   );
+		
+		// 將結果加入結果集合
+		outputsSet.add(dataArray[getAttributesLength()]);
 	}
 	
-	// 取得 Attributes 數量
-	public int getAttributesCount() {
+	/*
+	 * 取得 Attributes 數量
+	 * @回傳 屬性數量
+	 */
+	public int getAttributesLength() {
 		if (attributes == null) {
 			return 0; 
 		}
 		return attributes.length;
 	}
 	
-	// 取得所有數據
-	public List<Element> getDatas() {
-		return new ArrayList<Element>(data);
+	/*
+	 * 取得屬性名稱陣列
+	 * @回傳 屬性名稱陣列
+	 */
+	public String[] getAttributes() {
+		return attributes;
+	}
+	
+	/*
+	 * 取得所有資料行
+	 * @回傳 所有資料行
+	 */
+	public List<Element> getElementList() {
+		return new ArrayList<Element>(elementList);
+	}
+	
+	/*
+	 * 取得結果的種類數
+	 * @回傳 結果的種類數
+	 */
+	public int getNumberOfOutput() {
+		return outputsSet.size();
 	}
 }
