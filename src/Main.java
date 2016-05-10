@@ -1,40 +1,39 @@
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
+	private final static double PERCENT = 0.75;
+	private final static double MINACCURACY = 0.6;
+	
+	private static List<Element> trainingSet = new ArrayList<Element>();
+	private static List<Element> testSet  = new ArrayList<Element>();
+	
 	public static void main(String[] args) {
 		
-		// 取得測試資料
-		FileParser filePaser = new FileParser("Data.txt");
-		List<Element> elementList = filePaser.getElementList();
+		double accuracy = 0;
+		do {
+			FileParser filePaser = new FileParser("Data.txt");
+			List<Element> elementList = filePaser.getElementList();
+			
+			assignElements(elementList);
+			
+			DecisionTree decisionTree = new DecisionTree(trainingSet, 
+														filePaser.getAttributes(), 
+														filePaser.getNumberOfOutput());
+			
+			accuracy = decisionTree.calculateAccuracy(testSet);
+		} while (accuracy < MINACCURACY);		
 		
-		
-		/*
-		 * 測試部分
-		 */
-		// 新增一個Bag
-		Bag bag = new Bag("root", filePaser.getAttributes(), filePaser.getNumberOfOutput());
-		// 把資料讀入Bag
-		for (Element e : elementList) {
-			bag.addElement(e);
-		}
-		
-		// 分割
-		Bag[] bags = bag.splitBagByMinEntropy();
-		
-		// 印出測試
-		System.out.println(bag);
-		
-		System.out.println("getMaxEntropyAttribute() : " + bag.getMaxEntropyAttribute());
-		
-		System.out.println("分割後的包:");
-		for (Bag b : bags) {
-			System.out.println("------");
-			System.out.println(b);
-		}
-		
-		// 註: 亂度(0~1)越大的Attribute優先分割，越接近 1 代表該Attribute與CLASS結果關聯越強烈
-		// 收斂條件: 若Attribute亂度為0(該Attribute差異與CLASS結果無關) 或亂度極小(該Attribute影響CLASS分類能力極小) 那該分支就可以停止分割了
 	}
-
+	
+	private static void assignElements(List<Element> elementList) {
+		int numOfTraining = (int)(elementList.size() * PERCENT);
+		for (int i = 0; i < numOfTraining; i++) {
+			int randomNum = (int)(Math.random() * (elementList.size() - 1));
+			trainingSet.add(elementList.get(randomNum));
+			elementList.remove(randomNum);
+		}
+		testSet = elementList;
+	}
 }
