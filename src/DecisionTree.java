@@ -135,8 +135,37 @@ public class DecisionTree {
      * 		失敗-null
      */
     public String findAnswer(Element element) {
-    		// TODO
-    		return null;
+    		Node finialNode = visitNode(root, element);
+    		
+    		// 中途找不到對應路徑
+    		if (finialNode == null) {
+    			return null;
+    		} 
+    		
+    		return finialNode.name;
+	}
+    
+    /*
+     * 走訪節點
+     * @參數 node: 節點
+     * 		element: 資料行
+     * @回傳 成功-葉子節點
+     * 		失敗-null
+     */
+    private Node visitNode(Node node, Element element) {
+    		// 沒有對應路徑
+    		if (node == null) {
+    			return null;
+    		}
+    	
+    		// 達葉子節點
+    		if (node.getChildrens().isEmpty()) {
+    			return node;
+    		}
+    	
+    		// 走訪下一個節點
+    		Node nextNode = node.getOneChild(element.getAttributeData(node.name));
+		return visitNode(nextNode, element);
 	}
     
     /*
@@ -147,7 +176,7 @@ public class DecisionTree {
     public double calculateAccuracy(List<Element> testSet) {
     		int correct = 0;
     		for (Element e : testSet) {
-    			if (findAnswer(e).equals(e.getOutput())) {
+    			if (findAnswer(e) != null && findAnswer(e).equals(e.getOutput())) {
     				correct++;
     			}
     		}
