@@ -21,72 +21,129 @@ public class DecisionTree {
 		buildTree(firstBag, null);
 	}
 	
+	/*
+	 * 建構決策樹
+	 * @參數 bag: 欲分類資料集
+	 * 		parent: 父節點
+	 */
 	private void buildTree(Bag bag, Node parent) {
 		Bag[] classifiedBags = bag.classifyByMaxIG();
 		
 		// 分支終點
 		if (classifiedBags == null) {
+			// 用結果字串建立節點
 			String ouputString = bag.getElementList().get(0).getOutput();
 			Node ouputNode = new Node(ouputString, parent);
+			// 與父節點關聯
 			parent.addChildren(bag.getName(), ouputNode);
 			return;
 		}
 		
-		String a = classifiedBags[0].getRootAttribute();
-		Node n2 = new Node(a, parent);
+		// 用與目前亂度差最大屬性建立節點
+		String rootAttribute = classifiedBags[0].getRootAttribute();
+		Node newNode = new Node(rootAttribute, parent);
 		
+		// 是否為根節點
 		if (root == null) {
-			root = n2;
+			root = newNode;
 		} else {
-			parent.addChildren(bag.getName(), n2);
+			// 與父節點關聯
+			parent.addChildren(bag.getName(), newNode);
 		}
 		
-		for (Bag tmpb : classifiedBags) {
-			buildTree(tmpb, n2);
+		// 各分支繼續建構決策樹
+		for (Bag b : classifiedBags) {
+			buildTree(b, newNode);
 		}			
 	}
 	
 	/*
 	 * 節點物件
 	 */
-    private class Node {
+    class Node {
+    	
         private String name;
         private Node parent;
         private Map<String, Node> childrens = new HashMap<String, Node>();
         
+        /*
+         * 建構子
+         * @參數 name: 節點名稱
+         * 		parent: 父節點
+         */
         public Node(String name, Node parent) {
         		this.name = name;
         		this.parent = parent;
         }
         
-        public void addChildren(String s, Node n) {
-        		childrens.put(s, n);
+        /*
+         * 加入子節點
+         * @參數 branchName: 分支名稱
+         * 		child: 子節點
+         */
+        public void addChildren(String branchName, Node child) {
+        		childrens.put(branchName, child);
         	
         }
         
+        /*
+         * 取得節點名稱
+         * @回傳 節點名稱
+         */
         public String getName() {
 			return name;
 		}
         
+        /*
+         * 取得父節點
+         * @回傳 父節點
+         */
         public Node getParent() {
 			return parent;
 		}
         
+        /*
+         * 取得所有子節點
+         * @回傳 所有子節點
+         */
         public Map<String, Node> getChildrens() {
 			return childrens;
 		}
         
+        /*
+         * 取得特定子節點
+         * @回傳 特定子節點
+         */
+        public Node getOneChild(String branchName) {
+			return childrens.get(branchName);
+		}
+        
     }
     
+    /*
+     * 取得根節點
+     * @回傳 根節點
+     */
     public Node getRoot() {
 		return root;
 	}
     
+    /*
+     * 求解
+     * @參數 element: 單一資料行
+     * @回傳 成功-結果字串 
+     * 		失敗-null
+     */
     public String findAnswer(Element element) {
     		// TODO
     		return null;
 	}
     
+    /*
+     * 計算正確率
+     * @參數 testSet: 資料集
+     * @回傳 正確率
+     */
     public double calculateAccuracy(List<Element> testSet) {
     		int correct = 0;
     		for (Element e : testSet) {
