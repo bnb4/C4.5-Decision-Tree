@@ -33,6 +33,7 @@ public class Main {
 														filePaser.getAttributes(), 
 														filePaser.getNumberOfOutput());
 			
+			gui.setTree(decisionTree);
 			// 試驗測試集正確率
 			accuracy = decisionTree.calculateAccuracy(testSet);
 		} while (accuracy < MINACCURACY);	// 如果測試集正確率低於設定門檻則重做

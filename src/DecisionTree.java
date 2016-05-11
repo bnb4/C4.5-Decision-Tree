@@ -49,7 +49,7 @@ public class DecisionTree {
 	/*
 	 * 節點物件
 	 */
-    private class Node {
+    class Node {
         private String name;
         private Node parent;
         private Map<String, Node> childrens = new HashMap<String, Node>();
