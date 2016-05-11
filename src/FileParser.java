@@ -12,8 +12,11 @@ import java.util.Set;
  */
 public class FileParser {
 	
+	// 屬性名稱陣列
 	private String[] attributes;
+	// 所有資料行
 	private List<Element> elementList = new ArrayList<Element>();
+	// 結果集合
 	private Set<String> outputsSet = new HashSet<String>();
 	
 	/*
@@ -38,7 +41,7 @@ public class FileParser {
 	
 	/*
 	 * 儲存屬性名稱
-	 * 不包含"Output"欄名稱
+	 * (不包含"Output"欄名稱)
 	 * @參數 attStr 屬性行字串
 	 */
 	private void loadAttribute(String attStr) {
@@ -51,11 +54,12 @@ public class FileParser {
 	 * @參數 dataStr 資料行字串
 	 */
 	private void addData(String dataStr) {
-		// 處理空白行
+		// 處理空行
 		if (dataStr == null || dataStr.equals("")) {
 			return;
 		}
 
+		// Tab為切割字元
 		String[] dataArray = dataStr.split("\t");
 		
 		// 資料欄位數量不正確
@@ -63,6 +67,7 @@ public class FileParser {
 			return;
 		}
 		
+		// 加入資料
 		elementList.add(new Element(getAttributes(),
 							Arrays.copyOfRange(dataArray, 0, getAttributesLength()),
 							dataArray[getAttributesLength()])

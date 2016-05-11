@@ -8,28 +8,30 @@ import java.util.Map;
  */
 public class Bag {
 	
-	// 此分堆剩餘未用到的attributes
-	private String[] unusedAttributes;	
-	
-	// 來源屬性
-	private String rootAttribute;
-	
-	// 此分支名稱
+	// 此分堆剩餘未用到的屬性陣列
+	private String[] unusedAttributes;		
+	// 來源屬性 (e.g. "體型")
+	private String rootAttribute;	
+	// 此分支名稱 (e.g. "大")
 	private String name;
-	
-	// 此分堆包含的資料
+	// 內容資料行
 	private List<Element> elementsInBag = new ArrayList<Element>();
-	
 	// 結果的種類數
 	private int numberOfOutput;
 	
 	/*
 	 * 建構子
-	 * @傳入 branchName: 分支名稱
-	 * 	    unusedAttributes: 此分堆剩餘未用到的attributes
+	 * @傳入 rootAttribute: 來源屬性
+	 *      branchName: 分支名稱
+	 *      elementsInBag: 內容資料行
+	 * 	    unusedAttributes: 此分堆剩餘未用到的屬性陣列
 	 * 	    numberOfOutput: 結果的種類數
 	 */
-	public Bag(String rootAttribute, String branchName, List<Element> elementsInBag ,String[] unusedAttributes, int numberOfOutput) {
+	public Bag(String rootAttribute, 
+			   String branchName, 
+			   List<Element> elementsInBag,
+			   String[] unusedAttributes, 
+			   int numberOfOutput) {
 		this.rootAttribute = rootAttribute;
 		this.name = branchName;
 		this.unusedAttributes = unusedAttributes;
@@ -46,148 +48,31 @@ public class Bag {
 	}
 	
 	/*
-	 * 取得此分堆剩餘未用到的attributes
-	 * @回傳 此分堆剩餘未用到的attributes陣列
+	 * 取得此分堆剩餘未用到的屬性陣列
+	 * @回傳 此分堆剩餘未用到的屬性陣列
 	 */
 	public String[] getUnusedAttrubutes() {
 		return unusedAttributes;
 	}
 	
 	/*
-	 * 新增資料至分堆
-	 * @傳入 element 單筆資料
-	 */
-	public void addElement(Element element) {
-		elementsInBag.add(element);
-	}
-	
-	/*
+	 * 取得內容資料行
+	 * @回傳 內容資料行
 	 */
 	public List<Element> getElementList() {
 		return elementsInBag;
 	}
 	
+	/*
+	 * 取得來源屬性
+	 * @回傳 來源屬性
+	 */
 	public String getRootAttribute() {
 		return rootAttribute;
 	}
-	
+		
 	/*
-	// 以熵最大的Attribute分割成多個 Bag
-	public Bag[] splitBagByMinEntropy() {
-		String maxAttribute = getMaxEntropyAttribute();
-		String[] newAttributes = new String[this.unusedAttributes.length - 1];
-		
-		// 取得分割後的Bag剩餘的Attribute
-		for (int i = 0, counter = 0; i < this.unusedAttributes.length; i++) {
-			if (!this.unusedAttributes[i].equals(maxAttribute)) {
-				newAttributes[counter++] = this.unusedAttributes[i];
-			}
-		}
-				
-		// 分類Bags
-		Map<String, Bag> rawBags = new HashMap<String, Bag>();
-		for (Element e : elementsInBag) {
-			String maxAttributeData = e.getAttributeData(maxAttribute);
-			
-			// 若還沒有該分割種類的包，新增該包
-			if (!rawBags.containsKey(maxAttributeData)) {
-				rawBags.put(maxAttributeData, new Bag(null, maxAttributeData, newAttributes, numberOfOutput));
-			}
-				
-			rawBags.get(maxAttributeData).addElement(e);
-		}
-		
-		return rawBags.values().toArray(new Bag [rawBags.size()]);
-	}
-	
-	// 取得熵最大的attribute
-	public String getMaxEntropyAttribute() {
-		String min = null;
-		double value = 0.0;
-		
-		for (String attribute : getUnusedAttrubutes()) {
-			double nowValue = getEntropy(attribute);
-			if (nowValue > value) {
-				min = attribute;
-				value = nowValue;
-			}
-		}
-		
-		return min;
-	}
-	
-	// 取得某 attribute 的熵
-	public double getEntropy(String attribute) {
-		return getOutputEntropy() - getAttributeEntropy(attribute);
-	}
-	
-	// 取得熵計算中output部分
-	private double getOutputEntropy() {
-		Map<String, Integer> outputs = new HashMap<String, Integer>();
-		double entropy = 0.0;
-		
-		// 把資料讀入Map中
-		for (Element e : elementsInBag) {
-			if (!outputs.containsKey(e.getOutput())) {
-				outputs.put(e.getOutput(), 1);
-			} else {
-				outputs.put(e.getOutput(), outputs.get(e.getOutput()) + 1);
-			}
-		}
-		
-		// 計算熵
-		for (String att : outputs.keySet()) {
-            double part = outputs.get(att) * 1.0 / elementsInBag.size();
-            entropy -= part * Math.log(part) / Math.log(numberOfOutput);
-        }
-		return entropy;
-	}
-	
-	// 取得熵計算中attribute部分
-	private double getAttributeEntropy(String attribute) {
-		Map<String, HashMap<String, Integer>> outputs = new HashMap<String, HashMap<String, Integer>>();
-		// 符合該屬性值的資料個數
-		Map<String, Integer> attributes = new HashMap<String, Integer>();
-		double entropy = 0.0;
-		
-		// 把資料讀入Map中
-		for (Element e : elementsInBag) {
-			
-			String attData = e.getAttributeData(attribute);
-			
-			if (!attributes.containsKey(attData)) {
-				attributes.put(attData, 1);
-				outputs.put(attData, new HashMap<String, Integer>());
-			} else {
-				attributes.put(attData, attributes.get(attData) + 1);
-			}
-			
-			Map<String, Integer> attOutput = outputs.get(attData);
-			if (!attOutput.containsKey(e.getOutput())) {
-				attOutput.put(e.getOutput(), 1);
-			} else {
-				attOutput.put(e.getOutput(), attOutput.get(e.getOutput()) + 1);
-			}
-		}
-		
-		// 計算各屬性值的熵
-		for (String att : attributes.keySet()) {
-			double tmp = 0.0;
-            Map<String, Integer> output = outputs.get(att);
-            for (String eachOutput: output.keySet()) {
-	            	double part = output.get(eachOutput) * 1.0 / attributes.get(att);
-	            	tmp -= part * Math.log(part) / Math.log(numberOfOutput);
-            }
-
-            double part = attributes.get(att) * 1.0 / elementsInBag.size();
-            entropy += part * tmp;
-        }
-		return entropy;
-	}
-	*/
-	
-	/*
-	 * 用與目前亂度差(Information Gain)最大之屬性做分類
+	 * 用與目前亂度差(Information Gain, IG)最大之屬性做分類
 	 * @回傳 分類後資料
 	 */
 	public Bag[] classifyByMaxIG() {
@@ -206,17 +91,23 @@ public class Bag {
 			// 用屬性分類後資料集
 			Map<String, List<Element>> classifiedElements = classifyElements(attribute);
 			
-			// 計算用屬性分類後的亂度
+			// 用屬性分類後的亂度
 			double entropyOfAttribute = 0;
+			// 計算屬性底下各分支亂度依比例加總
 			for (String value : classifiedElements.keySet()) {
 				Map<String, Integer> numberOfEachOutput = countNumberOfEachOutput(classifiedElements.get(value));
-				double entropy = calculateEntropy(numberOfEachOutput);
-				double scale = countNumberOfElements(numberOfEachOutput) * 1.0 / elementsInBag.size();
-				entropyOfAttribute += entropy * scale;
+				// 分支亂度
+				double entropyOfBranch = calculateEntropy(numberOfEachOutput);
+				// 分支佔屬性的比例
+				double scaleOfBranch = countNumberOfElements(numberOfEachOutput) * 1.0 / elementsInBag.size();
+				
+				entropyOfAttribute += entropyOfBranch * scaleOfBranch;
 			}
 			
+			// 與目前亂度差(Information Gain)
 			double informationGain = entropyOfBag - entropyOfAttribute;
 			
+			// 若與目前亂度差大於記錄的亂度差，更新記錄
 			if (informationGain > maxInformationGain) {
 				maxInformationGain = informationGain;
 				targetAttribute = attribute;
@@ -224,10 +115,12 @@ public class Bag {
 			}
 		}
 		
+		// 如果"沒有剩餘未分類屬性"或"所有屬性分類後亂度與目前亂度相同"，則此分支結束
 		if (targetAttribute.equals("")) {
 			return null;
 		}
 		
+		// 建立分類後資料
 		Bag[] classifiedBags = new Bag[targetClassifiedElements.keySet().size()];
 		String[] newUnusedAttributes = removeElement(unusedAttributes, targetAttribute);
 		int index = 0;
@@ -250,10 +143,8 @@ public class Bag {
 	 * @回傳 刪除該項目後的陣列
 	 */
 	private String[] removeElement(String[] array, String e) {
-		String[] newArray = new String[array.length - 1];
-		
-		int counter = 0;
-		for (int i = 0; i < array.length; i++) {
+		String[] newArray = new String[array.length - 1];		
+		for (int i = 0, counter = 0; i < array.length; i++) {
 			if (!array[i].equals(e)) {
 				newArray[counter++] = array[i];
 			}
@@ -261,7 +152,6 @@ public class Bag {
 		
 		return newArray;
 	}
-	
 	
 	/*
 	 * 根據屬性分類資料行
@@ -326,19 +216,6 @@ public class Bag {
 		}
 		return sum;
 	}
-	
-	/*
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder("Bag: ");sb.append(getName()); sb.append("\r\n");
-		for (String attribute : getUnusedAttrubutes()) {
-			sb.append(attribute);sb.append(": ");sb.append(getEntropy(attribute));
-			sb.append(" (");sb.append(getOutputEntropy());sb.append(" - ");sb.append(getAttributeEntropy(attribute));sb.append(")");
-			sb.append("\r\n");
-		}
-		return sb.toString();
-	}
-	*/
 }
 
 /**
@@ -381,24 +258,4 @@ class Element {
 	public String getOutput() {
 		return this.output;
 	}
-
-	/*
-	 * @see java.lang.Object#equals(java.lang.Object)
-	 
-	@Override
-	public boolean equals(Object other) {
-		if (!(other instanceof Element)) {
-			return false;
-		}
-		Element oElement = (Element) other;
-		boolean isSame = true;
-		for (String attribute : attDataMap.keySet()) {
-			if (!this.getAttributeData(attribute).equals(oElement.getAttributeData(attribute))) {
-				isSame = false;
-				break;
-			}
-		}
-		isSame = isSame && (this.getOutput().equals(oElement.getOutput()));
-		return isSame;
-	}*/
 }

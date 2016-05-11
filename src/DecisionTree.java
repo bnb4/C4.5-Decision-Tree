@@ -7,14 +7,18 @@ import java.util.Map;
  */
 public class DecisionTree {
 	
+	// 根節點
 	private Node root = null;
 	
 	/*
 	 * 建構子
+	 * @參數 trainingSet: 訓練集資料行
+	 * 		attribute: 屬性名稱陣列
+	 * 		numOfOutput: 結果種類數
 	 */
 	public DecisionTree(List<Element> trainingSet, String[] attribute, int numOfOutput) {
-		Bag b = new Bag(null, null, trainingSet, attribute, numOfOutput);
-		test(b, null);
+		Bag firstBag = new Bag(null, null, trainingSet, attribute, numOfOutput);
+		test(firstBag, null);
 	}
 	
 	private void test(Bag b, Node parent) {
@@ -58,6 +62,18 @@ public class DecisionTree {
         		childrens.put(s, n);
         	
         }
+        
+        public String getName() {
+			return name;
+		}
+        
+        public Node getParent() {
+			return parent;
+		}
+        
+        public Map<String, Node> getChildrens() {
+			return childrens;
+		}
         
     }
     
