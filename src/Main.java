@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sun.javafx.scene.paint.GradientUtils;
+
 public class Main {
 
 	// 定義測試集佔整體資料的比例
@@ -14,11 +16,16 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
+		Gui gui = new Gui();
+		
 		double accuracy = 0;		// 測試集正確率
 		do {
 			// 讀取所有資料行
 			FileParser filePaser = new FileParser("Data.txt");
 			List<Element> elementList = filePaser.getElementList();
+			
+			gui.setAttribute(filePaser.getAttributes());
+			gui.setElementData(elementList);
 			
 			// 將資料行分成測試集與訓練集
 			assignElements(elementList);
