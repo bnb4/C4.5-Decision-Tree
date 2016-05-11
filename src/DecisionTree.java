@@ -83,7 +83,6 @@ public class DecisionTree {
          */
         public void addChildren(String branchName, Node child) {
         		childrens.put(branchName, child);
-        	
         }
         
         /*

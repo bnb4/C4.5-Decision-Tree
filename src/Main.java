@@ -14,30 +14,38 @@ public class Main {
 	
 	public static void main(String[] args) {
 		
+		// 視窗物件
 		Gui gui = new Gui();
 		
-		double accuracy = 0;		// 測試集正確率
+		double accuracy = 0;	// 測試集正確率
 		do {
 			// 讀取所有資料行
 			FileParser filePaser = new FileParser("Data.txt");
 			List<Element> elementList = filePaser.getElementList();
 			
-			gui.setAttribute(filePaser.getAttributes());
-			gui.setElementData(elementList);
-			
 			// 將資料行分成測試集與訓練集
 			assignElements(elementList);
+			
+			// 將資料傳入視窗
+			gui.setAttribute(filePaser.getAttributes());
+			gui.setTrainingSet(trainingSet);
+			gui.setTestSet(testSet);
 			
 			// 利用訓練集建立決策樹
 			DecisionTree decisionTree = new DecisionTree(trainingSet, 
 														filePaser.getAttributes(), 
 														filePaser.getNumberOfOutput());
 			
+			// 繪製決策樹
 			gui.setTree(decisionTree);
+			
 			// 試驗測試集正確率
 			accuracy = decisionTree.calculateAccuracy(testSet);
+			
 		} while (accuracy < MINACCURACY);	// 如果測試集正確率低於設定門檻則重做
 		
+		// 傳正確率數值給視窗
+		gui.setAccuracy(accuracy * 100);
 	}
 	
 	/*
