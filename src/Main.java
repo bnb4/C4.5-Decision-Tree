@@ -1,8 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sun.javafx.scene.paint.GradientUtils;
-
 public class Main {
 
 	// 定義測試集佔整體資料的比例
