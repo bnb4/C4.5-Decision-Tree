@@ -18,30 +18,31 @@ public class DecisionTree {
 	 */
 	public DecisionTree(List<Element> trainingSet, String[] attribute, int numOfOutput) {
 		Bag firstBag = new Bag(null, null, trainingSet, attribute, numOfOutput);
-		test(firstBag, null);
+		buildTree(firstBag, null);
 	}
 	
-	private void test(Bag b, Node parent) {
-		Bag[] b2 = b.classifyByMaxIG();
+	private void buildTree(Bag bag, Node parent) {
+		Bag[] classifiedBags = bag.classifyByMaxIG();
 		
-		if (b2 == null) {
-			String dog = b.getElementList().get(0).getOutput();
-			Node nnn = new Node(dog, parent);
-			parent.addChildren(b.getName(), nnn);
+		// 分支終點
+		if (classifiedBags == null) {
+			String ouputString = bag.getElementList().get(0).getOutput();
+			Node ouputNode = new Node(ouputString, parent);
+			parent.addChildren(bag.getName(), ouputNode);
 			return;
 		}
 		
-		String a = b2[0].getRootAttribute();
+		String a = classifiedBags[0].getRootAttribute();
 		Node n2 = new Node(a, parent);
 		
 		if (root == null) {
 			root = n2;
 		} else {
-			parent.addChildren(b.getName(), n2);
+			parent.addChildren(bag.getName(), n2);
 		}
 		
-		for (Bag tmpb : b2) {
-			test(tmpb, n2);
+		for (Bag tmpb : classifiedBags) {
+			buildTree(tmpb, n2);
 		}			
 	}
 	
@@ -76,6 +77,10 @@ public class DecisionTree {
 		}
         
     }
+    
+    public Node getRoot() {
+		return root;
+	}
     
     public String findAnswer(Element element) {
     		// TODO
